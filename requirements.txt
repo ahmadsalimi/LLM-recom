@@ -1,0 +1,5 @@
+torch
+pytorch-lightning==1.9.1
+jsonargparse[signatures]>=4.18.0
+rich
+matplotlib
