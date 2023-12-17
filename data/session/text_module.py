@@ -2,28 +2,30 @@ from pytorch_lightning import LightningDataModule
 from torch.utils.data import DataLoader
 
 from data.product.format.default import DefaultFormatter
-from data.product.product_dataset import ProductDataset
+from data.session.text_dataset import SessionTextDataset
 
 
-class ProductDataModule(LightningDataModule):
+class SessionTextDataModule(LightningDataModule):
 
     def __init__(self, batch_size: int,
-                 file: str,
+                 sessions_file: str,
+                 products_file: str,
                  num_workers: int = 0,
                  formatter: str = None):
         super().__init__()
         self.batch_size = batch_size
         self.num_workers = num_workers
-        self.file = file
+        self.sessions_file = sessions_file
+        self.products_file = products_file
         self.formatter = formatter or DefaultFormatter()
-        self.predict_dataset = None
+        self.test_dataset = None
 
     def setup(self, stage: str = None) -> None:
-        assert stage == 'predict', f'Only "predict" stage is supported, got {stage}'
-        self.predict_dataset = ProductDataset(self.file, self.formatter)
+        assert stage == 'test', f'Only "test" stage is supported, got {stage}'
+        self.test_dataset = SessionTextDataset(self.sessions_file, self.products_file, self.formatter)
 
-    def predict_dataloader(self) -> DataLoader:
-        return DataLoader(self.predict_dataset,
+    def test_dataloader(self) -> DataLoader:
+        return DataLoader(self.test_dataset,
                           shuffle=False,
                           batch_size=self.batch_size,
                           num_workers=self.num_workers)
