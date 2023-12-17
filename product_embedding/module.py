@@ -22,5 +22,5 @@ class ProductEmbeddingModule(LightningModule):
         return self.model(batch)
 
     def predict_step(self, products: List[Tuple[str, str]], batch_idx: int, dataloader_idx: int = 0) -> torch.Tensor:
-        _, products = zip(*products)
+        _, _, products = zip(*products)
         return self(products)

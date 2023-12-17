@@ -1,3 +1,5 @@
+from typing import Tuple
+
 import pandas as pd
 from torch.utils.data import Dataset
 from unidecode import unidecode
@@ -15,5 +17,7 @@ class ProductDataset(Dataset):
     def __len__(self) -> int:
         return len(self.products)
 
-    def __getitem__(self, idx: int) -> str:
-        return unidecode(self.formatter.format(self.products.iloc[idx].to_dict()))
+    def __getitem__(self, idx: int) -> Tuple[str]:
+        id_ = self.products.iloc[idx]['id']
+        locale = self.products.iloc[idx]['locale']
+        return id_, locale, unidecode(self.formatter.format(self.products.iloc[idx].to_dict()))
