@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 
 import torch
 from pytorch_lightning import LightningModule
@@ -21,6 +21,5 @@ class ProductEmbeddingModule(LightningModule):
         """
         return self.model(batch)
 
-    def predict_step(self, products: List[Tuple[str, str]], batch_idx: int, dataloader_idx: int = 0) -> torch.Tensor:
-        _, _, products = zip(*products)
-        return self(products)
+    def predict_step(self, products: Dict[str, List[str]], batch_idx: int, dataloader_idx: int = 0) -> torch.Tensor:
+        return self(products['text'])

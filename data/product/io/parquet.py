@@ -17,6 +17,8 @@ class ParquetVectorIO(VectorIO):
         self.__pid_and_locale_to_index = None
 
     def initialize_read(self) -> torch.Tensor:
+        if self.__data is not None:
+            return
         self.__data = pd.read_parquet(self.directory)
         self.__pid_and_locale_to_index = {(pid, locale): i
                                           for i, (pid, locale)

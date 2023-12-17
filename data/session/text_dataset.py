@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 
 import pandas as pd
 from torch.utils.data import Dataset
@@ -23,7 +23,7 @@ class SessionTextDataset(Dataset):
     def __len__(self) -> int:
         return len(self.sessions)
 
-    def __getitem__(self, idx: int) -> Tuple[str, str, str]:
+    def __getitem__(self, idx: int) -> Dict[str, str]:
         session = self.sessions.iloc[idx]
         items_ids = session['prev_items'] + [session['next_item']]
         formatted_items = [
@@ -35,6 +35,10 @@ class SessionTextDataset(Dataset):
             f' Product {i + 1} '.center(80, '-') + '\n' + item
             for i, item in enumerate(formatted_items[:-1])
         ] + [f' Product {len(formatted_items)} '.center(80, '-')])
-        gt_id_ = items_ids[-1]
+        gt_id = items_ids[-1]
         gt_locale = session['locale']
-        return text, gt_id_, gt_locale
+        return dict(
+            text=text,
+            gt_id=gt_id,
+            gt_locale=gt_locale
+        )

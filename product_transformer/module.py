@@ -1,14 +1,17 @@
-from typing import Any, List, Dict
+from typing import Any, List, Dict, Union, Tuple
 
 import torch
 from pytorch_lightning import LightningModule
 from torch.nn import functional as F
 from transformers import get_linear_schedule_with_warmup
 
+from data.session.vector_dataset import SessionVectorDataset
+from metric.mrr import MRR
+from metric.cosine import CosineSimilarityLoss
 from product_transformer.model import ProductTransformer
 
 
-class SessionBERTModule(LightningModule):
+class ProductTransformerModule(LightningModule):
 
     def __init__(self, d_model: int = 768,
                  n_layers: int = 12,
@@ -32,19 +35,18 @@ class SessionBERTModule(LightningModule):
                             lr=lr,
                             weight_decay=weight_decay,
                             scheduler_n_warmup=scheduler_n_warmup)
+        self.mrr = None
+        self.loss = CosineSimilarityLoss()
 
-    def forward(self, x: torch.Tensor, padding_mask: torch.Tensor) -> torch.Tensor:
+    def forward(self, batch: List[torch.Tensor]) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Arguments:
-            x: Tensor, sessions tensor ``[B, L, D]``.
-            padding_mask: Tensor, shape ``[B, L]``.
+            batch: List[torch.Tensor], list of session item vectors
 
         Returns:
-            output: Tensor, shape ``[B, L, D]``.
+            y_hat: Tensor, shape ``[L', D]``.
+            y: Tensor, shape ``[L', D]``.
         """
-        return self.model(x, padding_mask)
-
-    def __step(self, batch: List[torch.Tensor], stage: str) -> torch.Tensor:
         batch = [s.to(self.device) for s in batch]
         x = [s[:-1] for s in batch]
         Ls = [s.shape[0] for s in x]
@@ -56,20 +58,34 @@ class SessionBERTModule(LightningModule):
         y_hat = self(x, padding_mask)                                                               # [B, L, D]
         flat_mask = (~padding_mask).flatten(0, 1)                                                   # [BL]
         y_hat = y_hat.flatten(0, 1)[flat_mask]                                                      # [L', D]
+        return y_hat, y
 
-        cosine_similarity = F.cosine_similarity(y_hat, y, dim=-1).mean()                            # []
-        loss = 1 - cosine_similarity
+    def __step(self, batch: List[torch.Tensor], stage: str) -> torch.Tensor:
+        y_hat, y = self(batch)
+        loss = self.loss(y_hat, y)
         self.log(f'{stage}_loss', loss)
         return loss
 
-    def training_step(self, batch: List[torch.Tensor], batch_idx: int) -> torch.Tensor:
-        return self.__step(batch, 'train')
+    def training_step(self, batch: Dict[str, Union[torch.Tensor, List[str]]], batch_idx: int) -> torch.Tensor:
+        return self.__step(batch['vectors'], 'train')
 
-    def validation_step(self, batch: List[torch.Tensor], batch_idx: int) -> torch.Tensor:
-        return self.__step(batch, 'val')
+    @torch.no_grad()
+    def validation_step(self, batch: Dict[str, Union[torch.Tensor, List[str]]], batch_idx: int) -> torch.Tensor:
+        self.__step(batch['vectors'], 'val')
 
-    def test_step(self, batch: List[torch.Tensor], batch_idx: int) -> torch.Tensor:
-        return self.__step(batch, 'test')
+    def on_test_start(self) -> None:
+        dataset: SessionVectorDataset = self.trainer.test_dataloaders[0].dataset
+        self.mrr = MRR(dataset.vector_io)
+
+    @torch.no_grad()
+    def test_step(self, batch: Dict[str, Union[torch.Tensor, List[str]]], batch_idx: int) -> torch.Tensor:
+        vectors, gt_ids, gt_locales = batch['vectors'], batch['gt_id'], batch['gt_locale']
+        y_hat, y = self(vectors)
+        loss = self.loss(y_hat, y)
+        self.log('test_loss', loss)
+        output = y_hat[torch.cumsum(torch.tensor([len(v) for v in vectors]), dim=0) - 1]    # [B, D]
+        mrr = self.mrr(output, gt_ids, gt_locales)
+        self.log('MRR', mrr, prog_bar=True)
 
     def get_grouped_params(self) -> List[Dict[str, Any]]:
         params_with_wd, params_without_wd = [], []

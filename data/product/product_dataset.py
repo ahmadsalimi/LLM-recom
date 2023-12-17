@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Dict
 
 import pandas as pd
 from torch.utils.data import Dataset
@@ -17,7 +17,11 @@ class ProductDataset(Dataset):
     def __len__(self) -> int:
         return len(self.products)
 
-    def __getitem__(self, idx: int) -> Tuple[str]:
+    def __getitem__(self, idx: int) -> Dict[str, str]:
         id_ = self.products.iloc[idx]['id']
         locale = self.products.iloc[idx]['locale']
-        return id_, locale, unidecode(self.formatter.format(self.products.iloc[idx].to_dict()))
+        return dict(
+            id=id_,
+            locale=locale,
+            text=unidecode(self.formatter.format(self.products.iloc[idx].to_dict()))
+        )
