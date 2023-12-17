@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 
 import pandas as pd
 import torch
@@ -30,6 +30,11 @@ class ParquetVectorIO(VectorIO):
         self.__check_read()
         vector = self.__data.iloc[self.__pid_and_locale_to_index[(id_, locale)]]['vector']
         return torch.tensor(vector)
+
+    def get_all_indices(self) -> List[Tuple[str, str]]:
+        self.__check_read()
+        return [(pid, locale) for pid, locale in zip(self.__data['id'].tolist(),
+                                                     self.__data['locale'].tolist())]
 
     def __store_chunk(self):
         self.current_chunk.to_parquet(f'{self.directory}/chunk_{self.current_chunk_idx}.parquet')

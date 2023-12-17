@@ -1,6 +1,6 @@
 import os
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Tuple
 
 import torch
 
@@ -16,6 +16,10 @@ class VectorIO(ABC):
 
     @abstractmethod
     def get(self, id_: str, locale: str) -> torch.Tensor:
+        pass
+
+    @abstractmethod
+    def get_all_indices(self) -> List[Tuple[str, str]]:
         pass
 
     @abstractmethod
