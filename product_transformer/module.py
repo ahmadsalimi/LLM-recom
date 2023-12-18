@@ -57,7 +57,7 @@ class ProductTransformerModule(LightningModule):
         padding_mask = ~torch.stack([F.pad(torch.ones(l, device=x.device),
                                            (0, L - l)) for l in Ls], dim=0).bool()             # [B, L]
         y = torch.cat([s[1:] for s in batch], dim=0)                                                # [L', D]
-        y_hat = self(x, padding_mask)                                                               # [B, L, D]
+        y_hat = self.model(x, padding_mask)                                                               # [B, L, D]
         flat_mask = (~padding_mask).flatten(0, 1)                                                   # [BL]
         y_hat = y_hat.flatten(0, 1)[flat_mask]                                                      # [L', D]
         return y_hat, y
