@@ -28,7 +28,7 @@ class ProductTransformer(nn.Module):
             output: Tensor, shape ``[B, L, D]``.
         """
         L = x.shape[1]
-        causal_mask = nn.Transformer.generate_square_subsequent_mask(L).bool()                      # [L, L]
+        causal_mask = nn.Transformer.generate_square_subsequent_mask(L).bool().to(x.device)         # [L, L]
         x = self.pos_encoder(x)                                                                     # [B, L, D]
         x = self.transformer_encoder(x, src_key_padding_mask=padding_mask, mask=causal_mask)        # [B, L, D]
         return x
