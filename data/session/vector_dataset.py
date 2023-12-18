@@ -12,7 +12,6 @@ class SessionVectorDataset(Dataset):
         self.session_file = session_file
         self.sessions = read_sessions(session_file)
         self.vector_io = vector_io
-        self.vector_io.initialize_read()
 
     def __len__(self) -> int:
         return len(self.sessions)

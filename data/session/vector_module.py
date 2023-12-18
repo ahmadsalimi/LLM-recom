@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pytorch_lightning import LightningDataModule
 from torch.utils.data import DataLoader
 
@@ -10,26 +12,24 @@ class SessionVectorDataModule(LightningDataModule):
     def __init__(self, batch_size: int,
                  sessions_file: str,
                  num_workers: int = 0,
-                 train_vector_io: VectorIO = None,
-                 val_vector_io: VectorIO = None,
-                 test_vector_io: VectorIO = None):
+                 vector_io: Optional[VectorIO] = None):
         super().__init__()
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.sessions_file = sessions_file
-        self.train_vector_io = train_vector_io
-        self.val_vector_io = val_vector_io
-        self.test_vector_io = test_vector_io
+        self.vector_io = vector_io
         self.train_dataset = None
         self.val_dataset = None
         self.test_dataset = None
 
     def setup(self, stage: str = None) -> None:
         if stage == 'fit':
-            self.train_dataset = SessionVectorDataset(self.sessions_file, self.train_vector_io)
-            self.val_dataset = SessionVectorDataset(self.sessions_file, self.val_vector_io)
+            self.vector_io.initialize_read()
+            self.train_dataset = SessionVectorDataset(self.sessions_file, self.vector_io)
+            self.val_dataset = SessionVectorDataset(self.sessions_file, self.vector_io)
         elif stage == 'test':
-            self.test_dataset = SessionVectorDataset(self.sessions_file, self.test_vector_io)
+            self.vector_io.initialize_read()
+            self.test_dataset = SessionVectorDataset(self.sessions_file, self.vector_io)
         else:
             raise ValueError(f'Unsupported stage: {stage}')
 

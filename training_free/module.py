@@ -13,8 +13,7 @@ class TrainingFreeModule(LightningModule):
     def __init__(self, model: nn.Module, vector_io: VectorIO):
         super().__init__()
         self.model = model
-        self.vector_io = vector_io
-        self.vector_io.initialize_read()
+        vector_io.initialize_read()
         self.mrr = MRR(vector_io)
 
     def forward(self, batch: List[str]) -> torch.Tensor:
