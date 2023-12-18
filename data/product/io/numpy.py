@@ -2,7 +2,6 @@ import os
 from typing import List, Tuple
 
 import numpy as np
-import pandas as pd
 import torch
 
 from data.product.io.io import VectorIO
@@ -10,7 +9,7 @@ from data.product.io.io import VectorIO
 
 class NumpyVectorIO(VectorIO):
 
-    def __init__(self, directory: str, dtype: np.dtype = np.float32):
+    def __init__(self, directory: str, dtype: str = 'float32'):
         super().__init__(directory)
         self.dtype = dtype
 
