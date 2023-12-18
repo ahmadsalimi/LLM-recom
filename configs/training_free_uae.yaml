@@ -33,4 +33,4 @@ model: # training_free.module.TrainingFreeModule
     init_args:
       directory: ./dataset/product_embedding_parquet/uae
 
-  mrr_similarity_batch_size: 50000
+  mrr_similarity_batch_size: 10000
