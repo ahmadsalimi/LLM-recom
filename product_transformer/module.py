@@ -65,7 +65,7 @@ class ProductTransformerModule(LightningModule):
     def __step(self, batch: List[torch.Tensor], stage: str) -> torch.Tensor:
         y_hat, y = self(batch)
         loss = self.loss(y_hat, y)
-        self.log(f'{stage}_loss', loss)
+        self.log(f'{stage}_loss', loss, batch_size=len(batch))
         return loss
 
     def training_step(self, batch: Dict[str, Union[List[torch.Tensor], List[str]]], batch_idx: int) -> torch.Tensor:
@@ -84,10 +84,10 @@ class ProductTransformerModule(LightningModule):
         vectors, gt_ids, gt_locales = batch['vectors'], batch['gt_id'], batch['gt_locale']
         y_hat, y = self(vectors)
         loss = self.loss(y_hat, y)
-        self.log('test_loss', loss)
+        self.log('test_loss', loss, batch_size=len(vectors))
         output = y_hat[torch.cumsum(torch.tensor([len(v) for v in vectors]), dim=0) - 1]    # [B, D]
         mrr = self.mrr(output, gt_ids, gt_locales)
-        self.log('MRR', mrr, prog_bar=True)
+        self.log('MRR', mrr, batch_size=len(vectors), prog_bar=True)
 
     def get_grouped_params(self) -> List[Dict[str, Any]]:
         params_with_wd, params_without_wd = [], []
