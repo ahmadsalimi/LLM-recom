@@ -105,8 +105,7 @@ class ProductTransformerModule(LightningModule):
         scheduler = dict(
             scheduler=get_linear_schedule_with_warmup(optimizer,
                                                       num_warmup_steps=self.hparams['scheduler_n_warmup'],
-                                                      num_training_steps=len(self.trainer.train_dataloader)
-                                                                         * self.trainer.max_epochs,
+                                                      num_training_steps=2000000,
                                                       last_epoch=self.trainer.current_epoch - 1),
             interval='step')
         return [optimizer], [scheduler]
