@@ -9,3 +9,5 @@ Babel
 unidecode
 angle-emb
 tqdm
+numpy
+tensorboard
