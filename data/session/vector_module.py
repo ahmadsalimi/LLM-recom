@@ -45,16 +45,19 @@ class SessionVectorDataModule(LightningDataModule):
         return DataLoader(self.train_dataset,
                           shuffle=True,
                           batch_size=self.batch_size,
-                          num_workers=self.num_workers)
+                          num_workers=self.num_workers,
+                          collate_fn=SessionVectorDataset.my_collate)
 
     def val_dataloader(self) -> DataLoader:
         return DataLoader(self.val_dataset,
                           shuffle=False,
                           batch_size=self.batch_size,
-                          num_workers=self.num_workers)
+                          num_workers=self.num_workers,
+                          collate_fn=SessionVectorDataset.my_collate)
 
     def test_dataloader(self) -> DataLoader:
         return DataLoader(self.test_dataset,
                           shuffle=False,
                           batch_size=self.batch_size,
-                          num_workers=self.num_workers)
+                          num_workers=self.num_workers,
+                          collate_fn=SessionVectorDataset.my_collate)

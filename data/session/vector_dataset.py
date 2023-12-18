@@ -2,6 +2,7 @@ from typing import Dict, Union, Tuple, Optional, List
 
 import torch
 from torch.utils.data import Dataset
+from torch.utils.data._utils.collate import collate, default_collate_fn_map
 
 from data.product.io.io import VectorIO
 from data.session.common import read_sessions
@@ -24,7 +25,17 @@ class SessionVectorDataset(Dataset):
         gt_id = session['next_item']
         gt_locale = session['locale']
         return dict(
-            vectors=item_vectors,
+            vectors=torch.stack(item_vectors, dim=0),
             gt_id=gt_id,
             gt_locale=gt_locale,
         )
+
+    @staticmethod
+    def my_collate_tensor_fn(batch, *args, **kwargs):
+        return batch
+
+    @classmethod
+    def my_collate(cls, batch):
+        my_collate_fn_map = default_collate_fn_map.copy()
+        my_collate_fn_map[torch.Tensor] = cls.my_collate_tensor_fn
+        return collate(batch, collate_fn_map=my_collate_fn_map)
