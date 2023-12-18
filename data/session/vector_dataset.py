@@ -17,14 +17,14 @@ class SessionVectorDataset(Dataset):
     def __len__(self) -> int:
         return len(self.sessions)
 
-    def __getitem__(self, idx: int) -> Dict[str, Union[torch.Tensor, str]]:
+    def __getitem__(self, idx: int) -> Dict[str, Union[List[torch.Tensor], str]]:
         session = self.sessions.iloc[idx]
         item_ids = session['prev_items'] + [session['next_item']]
         item_vectors = [self.vector_io.get(item, session['locale']) for item in item_ids]
         gt_id = session['next_item']
         gt_locale = session['locale']
         return dict(
-            vectors=torch.stack(item_vectors, dim=0),
+            vectors=item_vectors,
             gt_id=gt_id,
             gt_locale=gt_locale,
         )
