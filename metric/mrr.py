@@ -39,6 +39,7 @@ class MRR(nn.Module):
                                         y_hat,
                                         self.product_vectors[i:i + self.similarity_batch_size].to(y_hat.device),
                                         dim=-1)), dim=1)
+            print('mrr on batch', i)
         ranks = similarity.argsort(dim=-1, descending=True) + 1    # [B, N]
         gt_ranks = ranks[torch.arange(len(ranks)), gt_indices]    # [B]
         mrr = (1 / gt_ranks).mean()
