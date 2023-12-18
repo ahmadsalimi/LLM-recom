@@ -12,7 +12,7 @@ trainer:
   - class_path: pytorch_lightning.callbacks.RichProgressBar
 
 data: # data.session.text_module.SessionTextDataModule
-  batch_size: 8
+  batch_size: 64
   sessions_file:
     - ./dataset/phase2/sessions_test_task1.csv
     - ./dataset/phase2/gt_task1.csv
