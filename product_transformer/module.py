@@ -40,7 +40,7 @@ class ProductTransformerModule(LightningModule):
         self.mrr = None
         self.loss = CosineSimilarityLoss()
 
-    def forward(self, batch: List[List[torch.Tensor]]) -> Tuple[torch.Tensor, torch.Tensor]:
+    def forward(self, batch: List[torch.Tensor]) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Arguments:
             batch: List[List[torch.Tensor]], list of session item vectors
@@ -49,7 +49,7 @@ class ProductTransformerModule(LightningModule):
             y_hat: Tensor, shape ``[L', D]``.
             y: Tensor, shape ``[L', D]``.
         """
-        batch = [torch.stack(s).to(self.device) for s in batch]
+        batch = [s.to(self.device) for s in batch]
         x = [s[:-1] for s in batch]
         Ls = [s.shape[0] for s in x]
         L = max(Ls)
@@ -62,17 +62,17 @@ class ProductTransformerModule(LightningModule):
         y_hat = y_hat.flatten(0, 1)[flat_mask]                                                      # [L', D]
         return y_hat, y
 
-    def __step(self, batch: List[List[torch.Tensor]], stage: str) -> torch.Tensor:
+    def __step(self, batch: List[torch.Tensor], stage: str) -> torch.Tensor:
         y_hat, y = self(batch)
         loss = self.loss(y_hat, y)
         self.log(f'{stage}_loss', loss)
         return loss
 
-    def training_step(self, batch: Dict[str, Union[List[List[torch.Tensor]], List[str]]], batch_idx: int) -> torch.Tensor:
+    def training_step(self, batch: Dict[str, Union[List[torch.Tensor], List[str]]], batch_idx: int) -> torch.Tensor:
         return self.__step(batch['vectors'], 'train')
 
     @torch.no_grad()
-    def validation_step(self, batch: Dict[str, Union[torch.Tensor, List[str]]], batch_idx: int) -> torch.Tensor:
+    def validation_step(self, batch: Dict[str, Union[List[torch.Tensor], List[str]]], batch_idx: int) -> torch.Tensor:
         self.__step(batch['vectors'], 'val')
 
     def on_test_start(self) -> None:
@@ -80,7 +80,7 @@ class ProductTransformerModule(LightningModule):
         self.mrr = MRR(dataset.vector_io, similarity_batch_size=self.hparams['mrr_similarity_batch_size'])
 
     @torch.no_grad()
-    def test_step(self, batch: Dict[str, Union[torch.Tensor, List[str]]], batch_idx: int) -> torch.Tensor:
+    def test_step(self, batch: Dict[str, Union[List[torch.Tensor], List[str]]], batch_idx: int) -> torch.Tensor:
         vectors, gt_ids, gt_locales = batch['vectors'], batch['gt_id'], batch['gt_locale']
         y_hat, y = self(vectors)
         loss = self.loss(y_hat, y)

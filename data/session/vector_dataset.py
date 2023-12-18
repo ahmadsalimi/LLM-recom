@@ -18,7 +18,7 @@ class SessionVectorDataset(Dataset):
     def __len__(self) -> int:
         return len(self.sessions)
 
-    def __getitem__(self, idx: int) -> Dict[str, Union[List[torch.Tensor], str]]:
+    def __getitem__(self, idx: int) -> Dict[str, Union[torch.Tensor, str]]:
         session = self.sessions.iloc[idx]
         item_ids = session['prev_items'] + [session['next_item']]
         item_vectors = [self.vector_io.get(item, session['locale']) for item in item_ids]
