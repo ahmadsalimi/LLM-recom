@@ -10,7 +10,7 @@ from data.session.vector_dataset import SessionVectorDataset
 class SessionVectorDataModule(LightningDataModule):
 
     def __init__(self, batch_size: int,
-                 sessions_file: Union[str, Tuple[str, str]],
+                 train_sessions_file: Union[str, Tuple[str, str]],
                  test_sessions_file: Union[str, Tuple[str, str]],
                  num_workers: int = 0,
                  vector_io: Optional[VectorIO] = None,
@@ -18,7 +18,7 @@ class SessionVectorDataModule(LightningDataModule):
         super().__init__()
         self.batch_size = batch_size
         self.num_workers = num_workers
-        self.train_sessions_file = sessions_file
+        self.train_sessions_file = train_sessions_file
         self.test_sessions_file = test_sessions_file
         self.vector_io = vector_io
         self.include_locale = include_locale
