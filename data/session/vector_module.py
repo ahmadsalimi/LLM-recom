@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Union, Tuple, List
 
 from pytorch_lightning import LightningDataModule
 from torch.utils.data import DataLoader
@@ -10,14 +10,16 @@ from data.session.vector_dataset import SessionVectorDataset
 class SessionVectorDataModule(LightningDataModule):
 
     def __init__(self, batch_size: int,
-                 sessions_file: str,
+                 sessions_file: Union[str, Tuple[str, str]],
                  num_workers: int = 0,
-                 vector_io: Optional[VectorIO] = None):
+                 vector_io: Optional[VectorIO] = None,
+                 include_locale: Optional[List[str]] = None):
         super().__init__()
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.sessions_file = sessions_file
         self.vector_io = vector_io
+        self.include_locale = include_locale
         self.train_dataset = None
         self.val_dataset = None
         self.test_dataset = None
@@ -25,11 +27,14 @@ class SessionVectorDataModule(LightningDataModule):
     def setup(self, stage: str = None) -> None:
         if stage == 'fit':
             self.vector_io.initialize_read()
-            self.train_dataset = SessionVectorDataset(self.sessions_file, self.vector_io)
-            self.val_dataset = SessionVectorDataset(self.sessions_file, self.vector_io)
+            self.train_dataset = SessionVectorDataset(self.sessions_file, self.vector_io,
+                                                      include_locale=self.include_locale)
+            self.val_dataset = SessionVectorDataset(self.sessions_file, self.vector_io,
+                                                    include_locale=self.include_locale)
         elif stage == 'test':
             self.vector_io.initialize_read()
-            self.test_dataset = SessionVectorDataset(self.sessions_file, self.vector_io)
+            self.test_dataset = SessionVectorDataset(self.sessions_file, self.vector_io,
+                                                     include_locale=self.include_locale)
         else:
             raise ValueError(f'Unsupported stage: {stage}')
 

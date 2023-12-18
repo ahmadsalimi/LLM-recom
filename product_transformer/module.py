@@ -20,7 +20,8 @@ class ProductTransformerModule(LightningModule):
                  dropout: float = 0.1,
                  lr: float = 5e-4,
                  weight_decay: float = 1e-1,
-                 scheduler_n_warmup: int = 1000):
+                 scheduler_n_warmup: int = 1000,
+                 mrr_similarity_batch_size: int = 1e4):
         super().__init__()
         self.model = ProductTransformer(d_model=d_model,
                                         n_layers=n_layers,
@@ -34,7 +35,8 @@ class ProductTransformerModule(LightningModule):
                             dropout=dropout,
                             lr=lr,
                             weight_decay=weight_decay,
-                            scheduler_n_warmup=scheduler_n_warmup)
+                            scheduler_n_warmup=scheduler_n_warmup,
+                            mrr_similarity_batch_size=mrr_similarity_batch_size)
         self.mrr = None
         self.loss = CosineSimilarityLoss()
 
@@ -75,7 +77,7 @@ class ProductTransformerModule(LightningModule):
 
     def on_test_start(self) -> None:
         dataset: SessionVectorDataset = self.trainer.test_dataloaders[0].dataset
-        self.mrr = MRR(dataset.vector_io)
+        self.mrr = MRR(dataset.vector_io, similarity_batch_size=self.hparams['mrr_similarity_batch_size'])
 
     @torch.no_grad()
     def test_step(self, batch: Dict[str, Union[torch.Tensor, List[str]]], batch_idx: int) -> torch.Tensor:

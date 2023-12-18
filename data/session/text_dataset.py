@@ -1,4 +1,4 @@
-from typing import List, Tuple, Dict
+from typing import Dict, Union, Tuple, List, Optional
 
 import pandas as pd
 from torch.utils.data import Dataset
@@ -9,10 +9,13 @@ from data.session.common import read_sessions
 
 class SessionTextDataset(Dataset):
 
-    def __init__(self, sessions_file: str, products_file: str, formatter: ProductFormatter):
+    def __init__(self, sessions_file: Union[str, Tuple[str, str]],
+                 products_file: str,
+                 formatter: ProductFormatter,
+                 include_locale: Optional[List[str]] = None):
         self.sessions_file = sessions_file
         self.products_file = products_file
-        self.sessions = read_sessions(sessions_file)
+        self.sessions = read_sessions(sessions_file, include_locale=include_locale)
         self.products = pd.read_csv(products_file)
         self.pid_and_locale_to_index = {(pid, locale): i
                                         for i, (pid, locale)

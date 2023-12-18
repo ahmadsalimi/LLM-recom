@@ -1,0 +1,28 @@
+seed_everything: 37
+trainer:
+
+  default_root_dir: ./results/training_free_example
+
+  accelerator: cpu
+  devices: 1
+
+  log_every_n_steps: 1
+
+  callbacks:
+  - class_path: pytorch_lightning.callbacks.RichProgressBar
+
+data: # data.session.text_module.SessionTextDataModule
+  batch_size: 8
+  sessions_file:
+    - ./dataset/phase2/sessions_test_task1.csv
+    - ./dataset/phase2/gt_task1.csv
+  products_file: ./dataset/products_train.csv
+
+model: # training_free.module.TrainingFreeModule
+  model:
+    class_path: llm.example.ExampleLLM
+
+  vector_io:
+    class_path: data.product.io.numpy.NumpyVectorIO
+    init_args:
+      directory: ./dataset/product_embedding/example

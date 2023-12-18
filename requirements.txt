@@ -8,3 +8,4 @@ pyarrow
 Babel
 unidecode
 angle-emb
+tqdm

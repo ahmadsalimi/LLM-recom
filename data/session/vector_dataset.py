@@ -1,4 +1,4 @@
-from typing import Dict, Union
+from typing import Dict, Union, Tuple, Optional, List
 
 import torch
 from torch.utils.data import Dataset
@@ -8,9 +8,10 @@ from data.session.common import read_sessions
 
 
 class SessionVectorDataset(Dataset):
-    def __init__(self, session_file: str, vector_io: VectorIO):
+    def __init__(self, session_file: Union[str, Tuple[str, str]], vector_io: VectorIO,
+                 include_locale: Optional[List[str]] = None):
         self.session_file = session_file
-        self.sessions = read_sessions(session_file)
+        self.sessions = read_sessions(session_file, include_locale=include_locale)
         self.vector_io = vector_io
 
     def __len__(self) -> int:
