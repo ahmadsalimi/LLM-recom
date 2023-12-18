@@ -29,6 +29,8 @@ model: # training_free.module.TrainingFreeModule
         in the session they will interact with: {text}'
 
   vector_io:
-    class_path: data.product.io.numpy.NumpyVectorIO
+    class_path: data.product.io.parquet.ParquetVectorIO
     init_args:
-      directory: ./dataset/product_embedding/uae
+      directory: ./dataset/product_embedding_parquet/uae
+
+  mrr_similarity_batch_size: 50000
