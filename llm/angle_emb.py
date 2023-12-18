@@ -26,6 +26,6 @@ class LLM(nn.Module):
         """
 
         input_data = [{'text': text} for text in products]
-        tensor_output = self.angle_model.encode(input_data, to_numpy=True)
-        return torch.tensor(tensor_output)
+        tensor_output = self.angle_model.encode(input_data, to_numpy=False)
+        return tensor_output
   

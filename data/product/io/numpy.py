@@ -22,4 +22,4 @@ class NumpyVectorIO(VectorIO):
 
     def write_batch(self, ids: List[str], locales: List[str], vectors: torch.Tensor):
         for id_, locale, vector in zip(ids, locales, vectors):
-            np.save(f'{self.directory}/{id_}_{locale}.npy', vector.numpy().astype(self.dtype))
+            np.save(f'{self.directory}/{id_}_{locale}.npy', vector.cpu().numpy().astype(self.dtype))

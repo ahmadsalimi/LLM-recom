@@ -47,7 +47,7 @@ class ParquetVectorIO(VectorIO):
         self.current_chunk = self.current_chunk.append(pd.DataFrame({
             'id': ids,
             'locale': locales,
-            'vector': vectors.tolist()
+            'vector': vectors.cpu().tolist()
         }), ignore_index=True)
         if len(self.current_chunk) >= self.chunk_size:
             self.__store_chunk()
