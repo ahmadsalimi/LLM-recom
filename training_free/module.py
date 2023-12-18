@@ -30,9 +30,7 @@ class TrainingFreeModule(LightningModule):
     @torch.no_grad()
     def test_step(self, batch: Dict[str, List[str]], batch_idx: int, dataloader_idx: int = 0) -> None:
         texts, gt_ids, gt_locales = batch['text'], batch['gt_id'], batch['gt_locale']
-        print('before forward')
         output = self(texts)    # [B, D]
-        print('after forward')
         mrr = self.mrr(output, gt_ids, gt_locales)
-        print('after mrr')
+        print(f'MRR: {mrr}')
         self.log('MRR', mrr, batch_size=len(texts), prog_bar=True)
