@@ -69,6 +69,8 @@ class ProductTransformerModule(LightningModule):
         return loss
 
     def training_step(self, batch: Dict[str, Union[List[torch.Tensor], List[str]]], batch_idx: int) -> torch.Tensor:
+        self.log('lr0', self.optimizers().param_groups[0]['lr'], prog_bar=True)
+        self.log('lr1', self.optimizers().param_groups[1]['lr'], prog_bar=True)
         return self.__step(batch['vectors'], 'train')
 
     @torch.no_grad()
