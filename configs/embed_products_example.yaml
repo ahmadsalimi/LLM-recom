@@ -3,7 +3,7 @@ trainer:
 
   default_root_dir: ./results/embed_products_example
 
-  accelerator: cpu
+  accelerator: cuda
   devices: 1
 
   log_every_n_steps: 1
@@ -24,4 +24,12 @@ data: # data.product.module.ProductDataModule
 
 model: # product_embedding.module.ProductEmbeddingModule
   model:
-    class_path: llm.example.ExampleLLM
+    class_path: llm.example.LLM
+    init_args:
+      model_name: WhereIsAI/UAE-Large-V1
+      pooling_type: cls
+      prompt: "Represent this sentence for searching relevant passages: {text}"
+
+
+      
+

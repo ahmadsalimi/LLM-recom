@@ -7,3 +7,4 @@ pandas
 pyarrow
 Babel
 unidecode
+angle-emb
