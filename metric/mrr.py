@@ -9,7 +9,7 @@ from data.product.io.io import VectorIO
 
 class MRR(nn.Module):
 
-    def __init__(self, vector_io: VectorIO, similarity_batch_size: int = 1e4):
+    def __init__(self, vector_io: VectorIO, similarity_batch_size: int = 10000):
         super().__init__()
         self.similarity_batch_size = int(similarity_batch_size)
         product_indices = vector_io.get_all_indices()

@@ -11,7 +11,7 @@ from metric.mrr import MRR
 class TrainingFreeModule(LightningModule):
 
     def __init__(self, model: nn.Module, vector_io: VectorIO,
-                 mrr_similarity_batch_size: int = 1e4):
+                 mrr_similarity_batch_size: int = 10000):
         super().__init__()
         self.model = model
         vector_io.initialize_read()

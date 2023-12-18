@@ -21,7 +21,7 @@ class ProductTransformerModule(LightningModule):
                  lr: float = 5e-4,
                  weight_decay: float = 1e-1,
                  scheduler_n_warmup: int = 1000,
-                 mrr_similarity_batch_size: int = 1e4):
+                 mrr_similarity_batch_size: int = 10000):
         super().__init__()
         self.model = ProductTransformer(d_model=d_model,
                                         n_layers=n_layers,
