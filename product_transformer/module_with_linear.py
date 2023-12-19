@@ -51,6 +51,7 @@ class ProductTransformerWithLinearModule(LightningModule):
                             triplet_margin=triplet_margin,
                             fine_tune=fine_tune)
         self.loss = CosineSimilarityLoss()
+        self.mrr = None
         if fine_tune:
             for param in self.retrieval_mapping.parameters():
                 param.requires_grad = False
@@ -77,6 +78,13 @@ class ProductTransformerWithLinearModule(LightningModule):
         flat_mask = (~padding_mask).flatten(0, 1)                                                   # [BL]
         y_hat = y_hat.flatten(0, 1)[flat_mask]                                                      # [L', D]
         return y_hat, y_prime
+
+    def on_fit_start(self) -> None:
+        optim: torch.optim.Optimizer = self.optimizers()
+        optim.param_groups.clear()
+        optim.state.clear()
+        for g in self.get_grouped_params(soft=False):
+            optim.add_param_group(g)
 
     def __step(self, batch: List[torch.Tensor], stage: str) -> torch.Tensor:
         dataset: Subset = self.trainer.val_dataloaders[0].dataset
@@ -126,11 +134,11 @@ class ProductTransformerWithLinearModule(LightningModule):
         print(f'MRR: {mrr}')
         self.log('MRR', mrr, batch_size=len(vectors), prog_bar=True)
 
-    def get_grouped_params(self) -> List[Dict[str, Any]]:
+    def get_grouped_params(self, soft: bool = True) -> List[Dict[str, Any]]:
         params_with_wd, params_without_wd = [], []
         no_decay = ['bias', 'LayerNorm.weight']
         for name, param in self.named_parameters():
-            if not param.requires_grad:
+            if not soft and not param.requires_grad:
                 continue
             if any(nd in name for nd in no_decay):
                 params_without_wd.append(param)
