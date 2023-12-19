@@ -98,17 +98,16 @@ class ProductTransformerWithLinearModule(LightningModule):
         self.__step(batch['vectors'], 'val')
 
     def on_test_start(self) -> None:
-        raise NotImplementedError
         dataset: SessionVectorDataset = self.trainer.test_dataloaders[0].dataset
-        self.mrr = MRR(dataset.vector_io, similarity_batch_size=self.hparams['mrr_similarity_batch_size'])
+        self.mrr = MRR(dataset.vector_io, similarity_batch_size=self.hparams['mrr_similarity_batch_size'],
+                       map_vectors=self.retrieval_mapping, device=self.device)
 
     @torch.no_grad()
     def test_step(self, batch: Dict[str, Union[List[torch.Tensor], List[str]]], batch_idx: int) -> torch.Tensor:
-        raise NotImplementedError
         vectors, gt_ids, gt_locales = batch['vectors'], batch['gt_id'], batch['gt_locale']
-        y_hat, y = self(vectors)
-        loss = self.loss(y_hat, y)
-        self.log('test_loss', loss, batch_size=len(vectors))
+        y_hat, y_prime = self(vectors)
+        # loss = self.loss(y_hat, y_prime)
+        # self.log('test_loss', loss, batch_size=len(vectors))
         prediction_indices = torch.cumsum(torch.tensor([len(v) - 1 for v in vectors], device=y_hat.device), dim=0) - 1
         output = y_hat[prediction_indices]    # [B, D]
         mrr = self.mrr(output, gt_ids, gt_locales)

@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 import numpy as np
 import torch
@@ -20,13 +20,24 @@ class Product(BaseDoc):
 
 class MRR(nn.Module):
 
-    def __init__(self, vector_io: VectorIO, similarity_batch_size: int = 10000):
+    def __init__(self, vector_io: VectorIO, similarity_batch_size: int = 10000, map_vectors: Optional[nn.Module] = None,
+                 device: torch.device = torch.device('cpu')):
         super().__init__()
         # self.similarity_batch_size = int(similarity_batch_size)
         product_indices = vector_io.get_all_indices()
         # TODO: this is a hack, we should not use private attributes
         vectors = np.array(vector_io._ParquetVectorIO__data['vector'].tolist())
-        products = [Product(id=id_, locale=locale, embedding=vectors[i])
+        if map_vectors is None:
+            mapped_vectors = vectors
+        else:
+            mapped_vectors = np.array([])
+            for i in tqdm(range(0, len(vectors), similarity_batch_size), desc='Mapping vectors',
+                          total=len(vectors) // similarity_batch_size):
+                mapped_vectors = np.concatenate((
+                    mapped_vectors,
+                    map_vectors(torch.from_numpy(vectors[i:i + similarity_batch_size]).to(device)).detach().cpu().numpy(),
+                ))
+        products = [Product(id=id_, locale=locale, embedding=mapped_vectors[i])
                     for i, (id_, locale) in enumerate(tqdm(product_indices, desc='Loading products',
                                                            total=len(product_indices)))]
         self.db = InMemoryExactNNVectorDB[Product](workspace='./vectordb-workspace')
