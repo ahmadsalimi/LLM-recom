@@ -87,7 +87,8 @@ class ProductTransformerModule(LightningModule):
         y_hat, y = self(vectors)
         loss = self.loss(y_hat, y)
         self.log('test_loss', loss, batch_size=len(vectors))
-        output = y_hat[torch.cumsum(torch.tensor([len(v) for v in vectors]), dim=0) - 1]    # [B, D]
+        prediction_indices = torch.cumsum(torch.tensor([len(v) for v in vectors], device=y_hat.device), dim=0) - 1
+        output = y_hat[prediction_indices]    # [B, D]
         mrr = self.mrr(output, gt_ids, gt_locales)
         self.log('MRR', mrr, batch_size=len(vectors), prog_bar=True)
 
