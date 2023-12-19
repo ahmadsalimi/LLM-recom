@@ -70,13 +70,15 @@ class ProductTransformerWithLinearModule(LightningModule):
         return y_hat, y_prime
 
     def __step(self, batch: List[torch.Tensor], stage: str) -> torch.Tensor:
+        dataset: SessionVectorDataset = self.trainer.train_dataloader.dataset
         y_hat, y_prime = self(batch)
         # loss = self.loss(y_hat, y_prime)
-        y_prime_negative = torch.cat((y_prime[1:], y_prime[:1]), dim=0)
+        # vectors = np.array(vector_io._ParquetVectorIO__data['vector'].tolist())
+        random_negative_indices = torch.randint(0, len(dataset.vector_io._ParquetVectorIO__data), size=(y_hat.shape[0],))
+        y_prime_negative = torch.stack(dataset.vector_io._ParquetVectorIO__data['vector'].iloc[random_negative_indices]).to(y_hat.device)
         positive_similarity_loss = 1 - F.cosine_similarity(y_hat, y_prime, dim=-1)
         negative_similarity_loss = 1 - F.cosine_similarity(y_hat, y_prime_negative, dim=-1)
         loss = F.relu(positive_similarity_loss - negative_similarity_loss + self.hparams['triplet_margin']).mean()
-        torch.nn.TripletMarginLoss
         self.log(f'{stage}_loss', loss, batch_size=len(batch))
         return loss
 
