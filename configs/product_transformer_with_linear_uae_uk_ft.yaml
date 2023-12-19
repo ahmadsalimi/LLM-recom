@@ -1,5 +1,5 @@
 seed_everything: 37
-ckpt_path: ./results/product_transformer_with_linear_uae_uk/lightning_logs/version_12/checkpoints/epoch\=18-val_loss\=0.91.ckpt
+ckpt_path: ./results/product_transformer_with_linear_uae_uk/lightning_logs/version_12/checkpoints/epoch=18-val_loss=0.91.ckpt
 trainer:
 
   check_val_every_n_epoch: 1
