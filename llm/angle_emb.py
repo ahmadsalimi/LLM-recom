@@ -28,4 +28,24 @@ class LLM(nn.Module):
         input_data = [{'text': text} for text in products]
         tensor_output = self.angle_model.encode(input_data, to_numpy=False)
         return tensor_output
-  
+
+class BERT(nn.Module):
+
+    def __init__(self, model_name: str, pooling_type: str):
+        super(BERT, self).__init__()
+        self.angle_model = AnglE.from_pretrained(model_name, pooling_strategy=pooling_type).cuda()
+
+
+
+    def forward(self, products: List[str]) -> torch.Tensor:
+        """
+        Arguments:
+            products: List[str], list of formatted product strings.
+
+        Returns:
+            output: Tensor, shape [B, D].
+        """
+        
+
+        tensor_output = self.angle_model.encode(products, to_numpy=False)
+        return tensor_output
