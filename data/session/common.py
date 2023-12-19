@@ -15,4 +15,5 @@ def read_sessions(file: Union[str, Tuple[str, str]], include_locale: Optional[Li
         .str.replace(r"(\['|'\])", '', regex=True).str.split(r"'\s+'", regex=True)
     if include_locale is not None:
         sessions = sessions[sessions['locale'].isin(include_locale)]
+        sessions.reset_index(drop=True, inplace=True)
     return sessions

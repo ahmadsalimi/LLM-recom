@@ -33,7 +33,7 @@ data: # data.session.vector_module.SessionVectorDataModule
     class_path: data.product.io.parquet.ParquetVectorIO
     init_args:
       directory: ./dataset/product_embedding_parquet/uae
-  include_locale: ['UK']
+      include_locale: ['UK']
 
 model: # product_transformer.module_with_linear.ProductTransformerWithLinearModule
   d_model: 1024

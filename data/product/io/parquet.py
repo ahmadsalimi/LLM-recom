@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 import pandas as pd
 import torch
@@ -8,8 +8,9 @@ from data.product.io.io import VectorIO
 
 class ParquetVectorIO(VectorIO):
 
-    def __init__(self, directory: str, chunk_size: int = 2048) -> None:
-        super().__init__(directory)
+    def __init__(self, directory: str, chunk_size: int = 2048,
+                 include_locale: Optional[List[str]] = None) -> None:
+        super().__init__(directory, include_locale=include_locale)
         self.chunk_size = chunk_size
         self.current_chunk_idx = 0
         self.current_chunk = pd.DataFrame(columns=['id', 'locale', 'vector'])
@@ -20,6 +21,9 @@ class ParquetVectorIO(VectorIO):
         if self.__data is not None:
             return
         self.__data = pd.read_parquet(self.directory)
+        if self.include_locale is not None:
+            self.__data = self.__data[self.__data['locale'].isin(self.include_locale)]
+            self.__data.reset_index(drop=True, inplace=True)
         self.__pid_and_locale_to_index = {(pid, locale): i
                                           for i, (pid, locale)
                                           in enumerate(zip(self.__data['id'].tolist(),
