@@ -22,7 +22,8 @@ class ProductTransformerWithLinearModule(LightningModule):
                  lr: float = 5e-4,
                  weight_decay: float = 1e-1,
                  scheduler_n_warmup: int = 1000,
-                 mrr_similarity_batch_size: int = 10000):
+                 mrr_similarity_batch_size: int = 10000,
+                 triplet_margin: float = 1.2):
         super().__init__()
         self.model = ProductTransformer(d_model=d_model,
                                         n_layers=n_layers,
@@ -42,8 +43,8 @@ class ProductTransformerWithLinearModule(LightningModule):
                             lr=lr,
                             weight_decay=weight_decay,
                             scheduler_n_warmup=scheduler_n_warmup,
-                            mrr_similarity_batch_size=mrr_similarity_batch_size)
-        self.loss = CosineSimilarityLoss()
+                            mrr_similarity_batch_size=mrr_similarity_batch_size,
+                            triplet_margin=triplet_margin)
 
     def forward(self, batch: List[torch.Tensor]) -> Tuple[torch.Tensor, torch.Tensor]:
         """
@@ -70,7 +71,12 @@ class ProductTransformerWithLinearModule(LightningModule):
 
     def __step(self, batch: List[torch.Tensor], stage: str) -> torch.Tensor:
         y_hat, y_prime = self(batch)
-        loss = self.loss(y_hat, y_prime)
+        # loss = self.loss(y_hat, y_prime)
+        y_prime_negative = torch.cat((y_prime[1:], y_prime[:1]), dim=0)
+        positive_similarity_loss = 1 - F.cosine_similarity(y_hat, y_prime, dim=-1)
+        negative_similarity_loss = 1 - F.cosine_similarity(y_hat, y_prime_negative, dim=-1)
+        loss = F.relu(positive_similarity_loss - negative_similarity_loss + self.hparams['triplet_margin']).mean()
+        torch.nn.TripletMarginLoss
         self.log(f'{stage}_loss', loss, batch_size=len(batch))
         return loss
 
