@@ -26,7 +26,6 @@ class MRR(nn.Module):
         products = [Product(id=id_, locale=locale, embedding=vector_io.get(id_, locale).numpy())
                     for id_, locale in tqdm(product_indices, desc='Loading products',
                                             total=len(product_indices))]
-        self.limit = 1000000
         self.db = InMemoryExactNNVectorDB[Product](workspace='./vectordb-workspace')
         self.db.index(inputs=DocList[Product](products))
         # self.product_vectors = torch.stack([vector_io.get(id_, locale)
@@ -47,12 +46,12 @@ class MRR(nn.Module):
             loss: Tensor, shape ``[]``.
         """
         queries = [Product(embedding=y_hat[i].cpu().numpy()) for i in range(len(y_hat))]
-        results = self.db.search(inputs=DocList[Product](queries), limit=self.limit)
+        results = self.db.search(inputs=DocList[Product](queries), limit=100)
         idx_to_rank = [{
             (r.id, r.locale): i + 1
             for i, r in enumerate(result.matches)
         } for result in results]
-        gt_ranks = [ranks.get((id_, locale), self.limit + 1)
+        gt_ranks = [ranks.get((id_, locale), float('inf'))
                     for id_, locale, ranks in zip(gt_ids, gt_locales, idx_to_rank)]
         mrr = (1 / torch.tensor(gt_ranks, dtype=torch.float32, device=y_hat.device)).mean()
         return mrr
