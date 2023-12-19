@@ -1,0 +1,47 @@
+seed_everything: 37
+trainer:
+
+  check_val_every_n_epoch: 1
+
+  max_epochs: 100
+
+  default_root_dir: ./results/product_transformer_with_linear_uae_uk
+
+  accelerator: cuda
+  devices: 1
+
+  log_every_n_steps: 1
+
+  callbacks:
+  - class_path: pytorch_lightning.callbacks.RichProgressBar
+
+  - class_path: pytorch_lightning.callbacks.ModelCheckpoint
+    init_args:
+      monitor: val_loss
+      mode: min
+      save_top_k: 1
+      save_last: True
+      filename: '{epoch:02d}-{val_loss:.2f}'
+
+data: # data.session.vector_module.SessionVectorDataModule
+  batch_size: 256
+  train_sessions_file: ./dataset/sessions_train.csv
+  test_sessions_file:
+    - ./dataset/phase2/sessions_test_task1.csv
+    - ./dataset/phase2/gt_task1.csv
+  vector_io:
+    class_path: data.product.io.parquet.ParquetVectorIO
+    init_args:
+      directory: ./dataset/product_embedding_parquet/uae
+  include_locale: ['UK']
+
+model: # product_transformer.module_with_linear.ProductTransformerWithLinearModule
+  d_model: 1024
+  n_layers: 6
+  n_head: 8
+  d_hidden: 2048
+  dropout: 0.1
+  lr: 5e-4
+  weight_decay: 1e-1
+  scheduler_n_warmup: 1000
+  mrr_similarity_batch_size: 20000
