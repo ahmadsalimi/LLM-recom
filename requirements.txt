@@ -11,3 +11,5 @@ angle-emb
 tqdm
 numpy
 tensorboard
+vectordb
+docarray
