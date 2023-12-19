@@ -83,7 +83,7 @@ class ProductTransformerWithLinearModule(LightningModule):
             axis=0
         )).to(y_hat.device)
         y_prime_negative = self.retrieval_mapping(y_negative)
-        loss = info_nce(y_hat, y_prime, y_prime_negative, negative_mode='paired')
+        loss = info_nce(y_hat, y_prime, y_prime_negative)
         # loss = F.triplet_margin_loss(y_hat, y_prime, y_prime_negative, margin=self.hparams['triplet_margin'])
         # positive_similarity_loss = 1 - F.cosine_similarity(y_hat, y_prime, dim=-1)
         # negative_similarity_loss = 1 - F.cosine_similarity(y_hat, y_prime_negative, dim=-1)
