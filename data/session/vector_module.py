@@ -13,15 +13,13 @@ class SessionVectorDataModule(LightningDataModule):
                  train_sessions_file: Union[str, Tuple[str, str]],
                  test_sessions_file: Union[str, Tuple[str, str]],
                  num_workers: int = 0,
-                 vector_io: Optional[VectorIO] = None,
-                 include_locale: Optional[List[str]] = None):
+                 vector_io: Optional[VectorIO] = None):
         super().__init__()
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.train_sessions_file = train_sessions_file
         self.test_sessions_file = test_sessions_file
         self.vector_io = vector_io
-        self.include_locale = include_locale
         self.train_dataset = None
         self.val_dataset = None
         self.test_dataset = None
@@ -29,15 +27,13 @@ class SessionVectorDataModule(LightningDataModule):
     def setup(self, stage: str = None) -> None:
         if stage == 'fit':
             self.vector_io.initialize_read()
-            train_dataset = SessionVectorDataset(self.train_sessions_file, self.vector_io,
-                                                 include_locale=self.include_locale)
+            train_dataset = SessionVectorDataset(self.train_sessions_file, self.vector_io)
             self.train_dataset, self.val_dataset = random_split(train_dataset, [int(len(train_dataset) * 0.9),
                                                                                 len(train_dataset) -
                                                                                 int(len(train_dataset) * 0.9)])
         elif stage == 'test':
             self.vector_io.initialize_read()
-            self.test_dataset = SessionVectorDataset(self.train_sessions_file, self.vector_io,
-                                                     include_locale=self.include_locale)
+            self.test_dataset = SessionVectorDataset(self.train_sessions_file, self.vector_io)
         else:
             raise ValueError(f'Unsupported stage: {stage}')
 
