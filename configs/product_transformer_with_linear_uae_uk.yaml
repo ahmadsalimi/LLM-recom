@@ -45,3 +45,4 @@ model: # product_transformer.module_with_linear.ProductTransformerWithLinearModu
   weight_decay: 1e-1
   scheduler_n_warmup: 1000
   mrr_similarity_batch_size: 20000
+  triplet_margin: 2.0
