@@ -26,7 +26,8 @@ class ProductTransformerWithLinearModule(LightningModule):
                  weight_decay: float = 1e-1,
                  scheduler_n_warmup: int = 1000,
                  mrr_similarity_batch_size: int = 10000,
-                 triplet_margin: float = 1.2):
+                 triplet_margin: float = 1.2,
+                 fine_tune: bool = False):
         super().__init__()
         self.model = ProductTransformer(d_model=d_model,
                                         n_layers=n_layers,
@@ -47,7 +48,12 @@ class ProductTransformerWithLinearModule(LightningModule):
                             weight_decay=weight_decay,
                             scheduler_n_warmup=scheduler_n_warmup,
                             mrr_similarity_batch_size=mrr_similarity_batch_size,
-                            triplet_margin=triplet_margin)
+                            triplet_margin=triplet_margin,
+                            fine_tune=fine_tune)
+        self.loss = CosineSimilarityLoss()
+        if fine_tune:
+            for param in self.retrieval_mapping.parameters():
+                param.requires_grad = False
 
     def forward(self, batch: List[torch.Tensor]) -> Tuple[torch.Tensor, torch.Tensor]:
         """
@@ -83,11 +89,14 @@ class ProductTransformerWithLinearModule(LightningModule):
             axis=0
         )).to(y_hat.device)
         y_prime_negative = self.retrieval_mapping(y_negative)
-        loss = info_nce(y_hat, y_prime, y_prime_negative, temperature=0.5)
-        # loss = F.triplet_margin_loss(y_hat, y_prime, y_prime_negative, margin=self.hparams['triplet_margin'])
-        # positive_similarity_loss = 1 - F.cosine_similarity(y_hat, y_prime, dim=-1)
-        # negative_similarity_loss = 1 - F.cosine_similarity(y_hat, y_prime_negative, dim=-1)
-        # loss = F.relu(positive_similarity_loss - negative_similarity_loss + self.hparams['triplet_margin']).mean()
+        if not self.hparams['fine_tune']:
+            loss = info_nce(y_hat, y_prime, y_prime_negative)
+            # loss = F.triplet_margin_loss(y_hat, y_prime, y_prime_negative, margin=self.hparams['triplet_margin'])
+            # positive_similarity_loss = 1 - F.cosine_similarity(y_hat, y_prime, dim=-1)
+            # negative_similarity_loss = 1 - F.cosine_similarity(y_hat, y_prime_negative, dim=-1)
+            # loss = F.relu(positive_similarity_loss - negative_similarity_loss + self.hparams['triplet_margin']).mean()
+        else:
+            loss = self.loss(y_hat, y_prime.detach())
         self.log(f'{stage}_loss', loss, batch_size=len(y_hat))
         return loss
 
@@ -121,6 +130,8 @@ class ProductTransformerWithLinearModule(LightningModule):
         params_with_wd, params_without_wd = [], []
         no_decay = ['bias', 'LayerNorm.weight']
         for name, param in self.named_parameters():
+            if not param.requires_grad:
+                continue
             if any(nd in name for nd in no_decay):
                 params_without_wd.append(param)
             else:
