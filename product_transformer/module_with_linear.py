@@ -77,10 +77,11 @@ class ProductTransformerWithLinearModule(LightningModule):
         # loss = self.loss(y_hat, y_prime)
         # vectors = np.array(vector_io._ParquetVectorIO__data['vector'].tolist())
         random_negative_indices = torch.randint(0, len(dataset.dataset.vector_io._ParquetVectorIO__data), size=(y_hat.shape[0],))
-        y_prime_negative = torch.from_numpy(np.stack(
+        y_negative = torch.from_numpy(np.stack(
             dataset.dataset.vector_io._ParquetVectorIO__data['vector'].iloc[random_negative_indices].tolist(),
             axis=0
         )).to(y_hat.device)
+        y_prime_negative = self.retrieval_mapping(y_negative)
         positive_similarity_loss = 1 - F.cosine_similarity(y_hat, y_prime, dim=-1)
         negative_similarity_loss = 1 - F.cosine_similarity(y_hat, y_prime_negative, dim=-1)
         loss = F.relu(positive_similarity_loss - negative_similarity_loss + self.hparams['triplet_margin']).mean()
