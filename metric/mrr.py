@@ -30,8 +30,10 @@ class MRR(nn.Module):
         if map_vectors is None:
             mapped_vectors = vectors
         else:
-            mapped_vectors = np.array([])
-            for i in tqdm(range(0, len(vectors), similarity_batch_size), desc='Mapping vectors',
+            mapped_vectors = map_vectors(
+                torch.from_numpy(vectors[:similarity_batch_size]).to(device)).detach().cpu().numpy()
+            for i in tqdm(range(similarity_batch_size, len(vectors), similarity_batch_size),
+                          desc='Mapping vectors',
                           total=len(vectors) // similarity_batch_size):
                 mapped_vectors = np.concatenate((
                     mapped_vectors,
