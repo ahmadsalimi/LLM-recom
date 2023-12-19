@@ -45,7 +45,7 @@ class MRR(nn.Module):
         Returns:
             loss: Tensor, shape ``[]``.
         """
-        queries = [Product(embedding=y_hat[i].cpu().numpy()) for i in range(len(y_hat))]
+        queries = [Product(embedding=y_hat[i].detach().cpu().numpy()) for i in range(len(y_hat))]
         results = self.db.search(inputs=DocList[Product](queries), limit=100)
         idx_to_rank = [{
             (r.id, r.locale): i + 1
