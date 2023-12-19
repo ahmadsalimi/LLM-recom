@@ -80,11 +80,12 @@ class ProductTransformerWithLinearModule(LightningModule):
         return y_hat, y_prime
 
     def on_train_start(self) -> None:
-        optim: torch.optim.Optimizer = self.optimizers()
-        optim.param_groups.clear()
-        optim.state.clear()
-        for g in self.get_grouped_params(soft=False):
-            optim.add_param_group(g)
+        if self.hparams['fine_tune']:
+            optim: torch.optim.Optimizer = self.optimizers()
+            optim.param_groups.clear()
+            optim.state.clear()
+            for g in self.get_grouped_params(soft=False):
+                optim.add_param_group(g)
 
     def __step(self, batch: List[torch.Tensor], stage: str) -> torch.Tensor:
         dataset: Subset = self.trainer.val_dataloaders[0].dataset
