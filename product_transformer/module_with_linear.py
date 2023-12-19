@@ -139,6 +139,7 @@ class ProductTransformerWithLinearModule(LightningModule):
         no_decay = ['bias', 'LayerNorm.weight']
         for name, param in self.named_parameters():
             if not soft and not param.requires_grad:
+                print(f'No grad: {name}')
                 continue
             if any(nd in name for nd in no_decay):
                 params_without_wd.append(param)
@@ -155,4 +156,5 @@ class ProductTransformerWithLinearModule(LightningModule):
                                                       num_training_steps=2000000,
                                                       last_epoch=self.trainer.current_epoch - 1),
             interval='step')
+        print(f'LR: {self.hparams["lr"]}')
         return [optimizer], [scheduler]
