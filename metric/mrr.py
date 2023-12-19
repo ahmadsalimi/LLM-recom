@@ -1,5 +1,6 @@
 from typing import List
 
+import numpy as np
 import torch
 from torch import nn
 from tqdm import tqdm
@@ -23,9 +24,11 @@ class MRR(nn.Module):
         super().__init__()
         # self.similarity_batch_size = int(similarity_batch_size)
         product_indices = vector_io.get_all_indices()
-        products = [Product(id=id_, locale=locale, embedding=vector_io.get(id_, locale).numpy())
-                    for id_, locale in tqdm(product_indices, desc='Loading products',
-                                            total=len(product_indices))]
+        # TODO: this is a hack, we should not use private attributes
+        vectors = np.array(vector_io._ParquetVectorIO__data['vector'].tolist())
+        products = [Product(id=id_, locale=locale, embedding=vectors[i])
+                    for i, (id_, locale) in enumerate(tqdm(product_indices, desc='Loading products',
+                                                           total=len(product_indices)))]
         self.db = InMemoryExactNNVectorDB[Product](workspace='./vectordb-workspace')
         self.db.index(inputs=DocList[Product](products))
         # self.product_vectors = torch.stack([vector_io.get(id_, locale)
