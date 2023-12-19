@@ -2,6 +2,7 @@ from typing import Any, List, Dict, Union, Tuple
 
 import numpy as np
 import torch
+from info_nce import info_nce
 from pytorch_lightning import LightningModule
 from torch import nn
 from torch.nn import functional as F
@@ -82,7 +83,8 @@ class ProductTransformerWithLinearModule(LightningModule):
             axis=0
         )).to(y_hat.device)
         y_prime_negative = self.retrieval_mapping(y_negative)
-        loss = F.triplet_margin_loss(y_hat, y_prime, y_prime_negative, margin=self.hparams['triplet_margin'])
+        loss = info_nce(y_hat, y_prime, y_prime_negative, negative_mode='paired')
+        # loss = F.triplet_margin_loss(y_hat, y_prime, y_prime_negative, margin=self.hparams['triplet_margin'])
         # positive_similarity_loss = 1 - F.cosine_similarity(y_hat, y_prime, dim=-1)
         # negative_similarity_loss = 1 - F.cosine_similarity(y_hat, y_prime_negative, dim=-1)
         # loss = F.relu(positive_similarity_loss - negative_similarity_loss + self.hparams['triplet_margin']).mean()

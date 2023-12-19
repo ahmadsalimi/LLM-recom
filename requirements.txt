@@ -13,3 +13,4 @@ numpy
 tensorboard
 vectordb
 docarray
+info-nce-pytorch
