@@ -70,7 +70,7 @@ class ProductTransformerWithLinearModule(LightningModule):
         return y_hat, y_prime
 
     def __step(self, batch: List[torch.Tensor], stage: str) -> torch.Tensor:
-        dataset: SessionVectorDataset = self.trainer.train_dataloader.dataset
+        dataset: SessionVectorDataset = self.trainer.val_dataloaders[0].dataset
         y_hat, y_prime = self(batch)
         # loss = self.loss(y_hat, y_prime)
         # vectors = np.array(vector_io._ParquetVectorIO__data['vector'].tolist())
