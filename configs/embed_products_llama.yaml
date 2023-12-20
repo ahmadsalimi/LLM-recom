@@ -1,9 +1,9 @@
 seed_everything: 37
 trainer:
 
-  default_root_dir: ./results/embed_products_example
+  default_root_dir: ./results/embed_products_llama
 
-  accelerator: cpu
+  accelerator: cuda
   devices: 1
 
   log_every_n_steps: 1
@@ -16,11 +16,17 @@ trainer:
       vector_io:
         class_path: data.product.io.numpy.NumpyVectorIO
         init_args:
-          directory: ./dataset/product_embedding/example
+          directory: ./dataset/product_embedding/llama
+
 data: # data.product.module.ProductDataModule
   batch_size: 16
   file: ./dataset/products_train.csv
 
 model: # product_embedding.module.ProductEmbeddingModule
   model:
-    class_path: llm.example.ExampleLLM
+    class_path: llm.angle_emb.LLM
+    init_args:
+      model_name: NousResearch/Llama-2-7b-hf
+      pretrained_lora_path : SeanLee97/angle-llama-7b-nli-v2
+      pooling_type: None
+      prompt: "Summarize this prodcut discription {text} in one word"
