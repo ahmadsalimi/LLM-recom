@@ -41,12 +41,12 @@ class MRR(nn.Module):
                     mapped_vectors,
                     map_vectors(torch.from_numpy(vectors[i:i + similarity_batch_size]).to(device)).detach().cpu().numpy(),
                 ))
-        Product = get_product_class(d=mapped_vectors.shape[-1])
-        products = [Product(id=id_, locale=locale, embedding=mapped_vectors[i])
+        self.Product = get_product_class(d=mapped_vectors.shape[-1])
+        products = [self.Product(id=id_, locale=locale, embedding=mapped_vectors[i])
                     for i, (id_, locale) in enumerate(tqdm(product_indices, desc='Loading products',
                                                            total=len(product_indices)))]
-        self.db = InMemoryExactNNVectorDB[Product](workspace='./vectordb-workspace')
-        self.db.index(inputs=DocList[Product](products))
+        self.db = InMemoryExactNNVectorDB[self.Product](workspace='./vectordb-workspace')
+        self.db.index(inputs=DocList[self.Product](products))
         # self.product_vectors = torch.stack([vector_io.get(id_, locale)
         #                                     for id_, locale
         #                                     in tqdm(product_indices, desc='Loading product vectors',
@@ -64,8 +64,8 @@ class MRR(nn.Module):
         Returns:
             loss: Tensor, shape ``[]``.
         """
-        queries = [Product(embedding=y_hat[i].detach().cpu().numpy()) for i in range(len(y_hat))]
-        results = self.db.search(inputs=DocList[Product](queries), limit=100)
+        queries = [self.Product(embedding=y_hat[i].detach().cpu().numpy()) for i in range(len(y_hat))]
+        results = self.db.search(inputs=DocList[self.Product](queries), limit=100)
         idx_to_rank = [{
             (r.id, r.locale): i + 1
             for i, r in enumerate(result.matches)
