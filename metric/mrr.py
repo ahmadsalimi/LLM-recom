@@ -12,10 +12,12 @@ from vectordb import InMemoryExactNNVectorDB
 from data.product.io.io import VectorIO
 
 
-class Product(BaseDoc):
-    id: str = ''
-    locale: str = ''
-    embedding: NdArray[1024]
+def get_product_class(d: int = 1024):
+    class Product(BaseDoc):
+        id: str = ''
+        locale: str = ''
+        embedding: NdArray[d]
+    return Product
 
 
 class MRR(nn.Module):
@@ -39,6 +41,7 @@ class MRR(nn.Module):
                     mapped_vectors,
                     map_vectors(torch.from_numpy(vectors[i:i + similarity_batch_size]).to(device)).detach().cpu().numpy(),
                 ))
+        Product = get_product_class(d=mapped_vectors.shape[-1])
         products = [Product(id=id_, locale=locale, embedding=mapped_vectors[i])
                     for i, (id_, locale) in enumerate(tqdm(product_indices, desc='Loading products',
                                                            total=len(product_indices)))]
