@@ -1,0 +1,31 @@
+seed_everything: 37
+trainer:
+
+  default_root_dir: ./results/embed_products_bert
+
+  accelerator: cuda
+  devices: 1
+
+  log_every_n_steps: 1
+
+  callbacks:
+  - class_path: pytorch_lightning.callbacks.RichProgressBar
+
+  - class_path: product_embedding.save_output.SaveOutput
+    init_args:
+      vector_io:
+        class_path: data.product.io.numpy.NumpyVectorIO
+        init_args:
+          directory: ./dataset/product_embedding/bert
+
+data: # data.product.module.ProductDataModule
+  batch_size: 256
+  file: ./dataset/products_train.csv
+
+model: # product_embedding.module.ProductEmbeddingModule
+  model:
+    class_path: llm.angle_emb.BERT
+    init_args:
+      model_name: SeanLee97/angle-bert-base-uncased-nli-en-v1
+      pooling_type: cls_avg
+
