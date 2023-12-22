@@ -43,7 +43,7 @@ model: # product_transformer.module.ProductTransformerModule
   n_head: 8
   d_hidden: 2048
   dropout: 0.1
-  lr: 5e-4
+  lr: 5e-5
   weight_decay: 1e-1
   scheduler_n_warmup: 50
   mrr_similarity_batch_size: 20000
