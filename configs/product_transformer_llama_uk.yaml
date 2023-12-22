@@ -24,7 +24,7 @@ trainer:
       filename: '{epoch:02d}-{val_loss:.2f}'
 
 data: # data.session.vector_module.SessionVectorDataModule
-  batch_size: 256
+  batch_size: 128
   train_sessions_file: ./dataset/sessions_train.csv
   test_sessions_file:
     - ./dataset/phase2/sessions_test_task1.csv
