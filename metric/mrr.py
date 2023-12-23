@@ -23,7 +23,7 @@ def get_product_class(d: int = 1024):
 class MRR(nn.Module):
 
     def __init__(self, vector_io: VectorIO, similarity_batch_size: int = 10000, map_vectors: Optional[nn.Module] = None,
-                 device: torch.device = torch.device('cpu')):
+                 device: torch.device = torch.device('cpu'), alpha: float = 1):
         super().__init__()
         # self.similarity_batch_size = int(similarity_batch_size)
         product_indices = vector_io.get_all_indices()
@@ -53,6 +53,7 @@ class MRR(nn.Module):
         #                                             total=len(product_indices))])   # [N, D]
         # self.id_to_index = {(id_, locale): i
         #                     for i, (id_, locale) in enumerate(product_indices)}
+        self.alpha = alpha
 
     def forward(self, y_hat: torch.Tensor, gt_ids: List[str], gt_locales: List[str]) -> torch.Tensor:
         """
@@ -67,7 +68,7 @@ class MRR(nn.Module):
         queries = [self.Product(embedding=y_hat[i].detach().cpu().numpy()) for i in range(len(y_hat))]
         results = self.db.search(inputs=DocList[self.Product](queries), limit=100)
         idx_to_rank = [{
-            (r.id, r.locale): i + 1
+            (r.id, r.locale): (i + 1) / self.alpha
             for i, r in enumerate(result.matches)
         } for result in results]
         gt_ranks = [ranks.get((id_, locale), float('inf'))

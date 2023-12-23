@@ -79,7 +79,8 @@ class ProductTransformerModule(LightningModule):
 
     def on_test_start(self) -> None:
         dataset: SessionVectorDataset = self.trainer.test_dataloaders[0].dataset
-        self.mrr = MRR(dataset.vector_io, similarity_batch_size=self.hparams['mrr_similarity_batch_size'])
+        self.mrr = MRR(dataset.vector_io, similarity_batch_size=self.hparams['mrr_similarity_batch_size'],
+                       alpha=2)
 
     @torch.no_grad()
     def test_step(self, batch: Dict[str, Union[List[torch.Tensor], List[str]]], batch_idx: int) -> torch.Tensor:
@@ -90,7 +91,6 @@ class ProductTransformerModule(LightningModule):
         prediction_indices = torch.cumsum(torch.tensor([len(v) - 1 for v in vectors], device=y_hat.device), dim=0) - 1
         output = y_hat[prediction_indices]    # [B, D]
         mrr = self.mrr(output, gt_ids, gt_locales)
-        print(f'MRR: {mrr}')
         self.log('MRR', mrr, batch_size=len(vectors), prog_bar=True)
 
     def get_grouped_params(self) -> List[Dict[str, Any]]:

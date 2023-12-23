@@ -32,5 +32,4 @@ class TrainingFreeModule(LightningModule):
         texts, gt_ids, gt_locales = batch['text'], batch['gt_id'], batch['gt_locale']
         output = self(texts)    # [B, D]
         mrr = self.mrr(output, gt_ids, gt_locales)
-        print(f'MRR: {mrr}')
         self.log('MRR', mrr, batch_size=len(texts), prog_bar=True)
